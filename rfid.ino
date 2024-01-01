@@ -1,5 +1,4 @@
 void cardDetect(){
-  loraOff();
   SPI.begin();
   rfKiri.PCD_Init();
   rfKanan.PCD_Init();
@@ -53,17 +52,14 @@ void cardCheckIn(String &var) {
       Serial.print("ID");
       Serial.print(i + 1);
       Serial.println(" IN");
-      oledPrint(String(counter), String(tersedia), String("Akses Masuk"));
-      buzzerBep();
-      servoKiriOn();
+      lcdPrint(String(counter), String(tersedia), String("Akses Masuk"));
       flag = true;
       break;
     } else if (var == cards[i].id && cards[i].status != 0) {
       Serial.println("Sudah Masuk");
-      oledPrint(String(counter), String(tersedia), String("Sudah Tap"));
-      buzzerBepBep();
+      lcdPrint(String(counter), String(tersedia), String("Sudah Tap"));
       delay(500);
-      oledPrint(String(counter), String(tersedia), String("Ready..."));
+      lcdPrint(String(counter), String(tersedia), String("Ready..."));
       flag2 = true;
       break;
     }
@@ -71,9 +67,8 @@ void cardCheckIn(String &var) {
   
   if (!flag && !flag2) {
     Serial.println("Akses Ditolak!");
-    oledPrint(String(counter), String(tersedia), String("Akses Ditolak!"));
-    buzzerBepLong();
-    oledPrint(String(counter), String(tersedia), String("Ready..."));
+    lcdPrint(String(counter), String(tersedia), String("Akses Ditolak!"));
+    lcdPrint(String(counter), String(tersedia), String("Ready..."));
     delay(500);
   } else if (flag) {
     String data;
@@ -94,17 +89,14 @@ void cardCheckOut(String &var) {
       Serial.print("ID");
       Serial.print(i + 1);
       Serial.println(" OUT");
-      oledPrint(String(counter), String(tersedia), String("Akses Keluar"));
-      buzzerBep();
-      servoKananOn();
+      lcdPrint(String(counter), String(tersedia), String("Akses Keluar"));
       flag = true;
       break;
     } else if (var == cards[i].id && cards[i].status != 1) {
       Serial.println("Sudah Keluar");
-      oledPrint(String(counter), String(tersedia), String("Sudah Tap"));
-      buzzerBepBep();
+      lcdPrint(String(counter), String(tersedia), String("Sudah Tap"));
       delay(500);
-      oledPrint(String(counter), String(tersedia), String("Ready..."));
+      lcdPrint(String(counter), String(tersedia), String("Ready..."));
       flag2 = true;
       break;
     }
@@ -112,9 +104,8 @@ void cardCheckOut(String &var) {
   
   if (!flag && !flag2) {
     Serial.println("Akses Ditolak!");
-    oledPrint(String(counter), String(tersedia), String("Akses Ditolak!"));
-    buzzerBepLong();
-    oledPrint(String(counter), String(tersedia), String("Ready..."));
+    lcdPrint(String(counter), String(tersedia), String("Akses Ditolak!"));
+    lcdPrint(String(counter), String(tersedia), String("Ready..."));
     delay(500);
   } else if (flag) {
     String data;
@@ -134,9 +125,9 @@ void cardCount() {
   tersedia = 5 - counter;
   Serial.println("Slot Terpakai : "+ String(counter));
   Serial.println("Slot Tersedia : "+ String(tersedia));
-  oledPrint(String(counter), String(tersedia), String("Uploading data..."));
-  sendData_Lora("{\"Terisi\":" + String(counter) + ",\"Tersedia\":" + String(tersedia) + "}");
+  lcdPrint(String(counter), String(tersedia), String("Uploading data..."));
+  String reply = "Terisi : " + String(counter) + ", Tersedia : " + String(tersedia);
   teleBot.sendMessage(msg, reply);
-  oledPrint(String(counter), String(tersedia), String("Ready..."));
+  lcdPrint(String(counter), String(tersedia), String("Ready..."));
   
 }

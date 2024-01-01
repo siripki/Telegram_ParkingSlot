@@ -1,5 +1,5 @@
 void spiffSetup() {
-  if (!SPIFFS.begin(true)) {
+  if (!SPIFFS.begin()) {
     Serial.println("SPIFFS Mount Failed");
     return;
   }

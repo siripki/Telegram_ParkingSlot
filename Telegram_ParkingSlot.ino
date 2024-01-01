@@ -15,20 +15,24 @@ Note :
 #define MYTZ "CET-1CEST,M3.5.0,M10.5.0/3"
 
 #include <time.h>
-#include "SPIFFS.h"
-#include "FS.h"
+#include <FS.h>
 #include <SPI.h>
 #include <MFRC522.h>
 #include <AsyncTelegram2.h>
 #include <Adafruit_ADS1X15.h>
 #include <WiFiManager.h>
 #include <ESP8266WiFi.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+
 BearSSL::WiFiClientSecure client;
 BearSSL::Session   session;
 BearSSL::X509List  certificate(telegram_cert);
 
 AsyncTelegram2 teleBot(client);
-Adafruit_ADS1115 ads;
+TBMessage msg;
 
 #define ssKanan 32
 #define rstKanan 17
@@ -68,6 +72,7 @@ void setup() {
   Serial.begin(115200);
   spiffSetup();
   readData();
+  lcdSetup();
 
   WiFiManager WM;
   WM.setConnectTimeout(10);
@@ -94,7 +99,7 @@ void setup() {
 }
 
 void loop() { 
-  TBMessage msg;
+  // TBMessage msg;
   incomingMsgHandling(msg);
   cardDetect();
 }
@@ -103,16 +108,8 @@ void incomingMsgHandling(TBMessage &msg) {
   if (teleBot.getNewMessage(msg)) {
     String msgText = msg.text;
 
-    if (msgText.equals("/status")) {
-      String slamp1Stat = "OFF";
-      String slamp2Stat = "OFF";
-      if (lamp1Stat == 0) slamp1Stat = "ON";
-      if (lamp2Stat == 0) slamp2Stat = "ON";
-      
-      String reply;
-      reply = "Informasi" ;
-      reply += slamp1Stat;
-      teleBot.sendMessage(msg, reply);    
+    if (msgText.equals("/status")) {      
+      cardCount();  
     }
 
     else {
@@ -120,11 +117,7 @@ void incomingMsgHandling(TBMessage &msg) {
       reply = "Selamat Datang " ;
       reply += msg.sender.username;
       reply += "\nDaftar perintah :";
-      reply += "\n/lampu1_on";
-      reply += "\n/lampu2_on";
-      reply += "\n/lampu1_off";
-      reply += "\n/lampu2_off";
-      reply += "\n/info";
+      reply += "\n/status";
       teleBot.sendMessage(msg, reply);                    // and send it
     }
   }
