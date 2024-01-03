@@ -1,6 +1,6 @@
 void spiffSetup() {
   if (!SPIFFS.begin()) {
-    Serial.println("SPIFFS Mount Failed");
+    debugE("SPIFFS Mount Failed");
     return;
   }
 }
@@ -8,7 +8,7 @@ void spiffSetup() {
 String readFile(const char *path) {
   File file = SPIFFS.open(path, "r");
   if (!file) {
-    Serial.println("Failed to open file for reading "+String(path));
+    debugE("Failed to open file for reading "+String(path));
     return String();
   }
   String fileContent;
@@ -21,9 +21,9 @@ String readFile(const char *path) {
 void writeFile(const char *path, const char *fileContent) {
   File file = SPIFFS.open(path, "w");
   if (file.print(fileContent)) {
-    Serial.println("- file written "+String(path));
+    debugE("- file written "+String(path));
   } else {
-    Serial.println("- write failed "+String(path));
+    debugE("- write failed "+String(path));
   }
 }
 

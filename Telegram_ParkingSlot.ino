@@ -34,16 +34,19 @@ BearSSL::X509List  certificate(telegram_cert);
 AsyncTelegram2 teleBot(client);
 TBMessage msg;
 
-#define ssKanan 32
-#define rstKanan 17
-#define ssKiri 33
-#define rstKiri 16
+#define ssKanan 0 //D3
+#define rstKanan 16 //D0
+#define ssKiri 2 //D4
+#define rstKiri 16 //D0
 MFRC522 rfKiri(ssKiri, rstKiri);
 MFRC522 rfKanan(ssKanan, rstKanan);
+//SCK D5
+//MOSI D6
+//MISO D7
 
 const char* APssid  =  "Parking Slot";     // SSID WiFi network
 const char* APpass  =  "12345678";     // Password  WiFi network
-const char* token =  "6302352184:AAFl_8lq3vgNN2BemJRIObhqC0Zu3Aav79w";  // Telegram token
+const char* token =  "6325196881:AAE_7uXj3LFiCrpAvtPcTQvsXZehM8YX9pg";  // Telegram token
 
 struct cardData {
   String id;
@@ -51,39 +54,50 @@ struct cardData {
 };
 
 cardData cards[] = {
-  {"16511018173", 0}, //card1
-  {"2023817644", 0}, //card2
-  {"6801522644", 0}, //card3
-  {"18024522744", 0}, //card4
-  {"0424922944", 0}, //card5
-  {"18012223744", 0}, //card6
-  {"5211422844", 0}, //card7
-  {"048323444", 0}, //card8
-  {"1969323344", 0}, //card9
-  {"2125120744", 0}, //card10
-  {"2129023344", 0} //card11
+  {"1470439246", false}, //card1
+  {"115010115014", false}, //card2
+  {"5113199246", false}, //card3
+  {"21101138014", false}, //card4
+  {"9956181245", false}, //card5
+  {"01186728", false}, //card6
+  {"015613028", false}, //card7
 };
 
 int cardTotal = sizeof(cards) / sizeof(cards[0]);
 int counter;
 int tersedia;
+int kapasitas = 5;
 
 void setup() {
   Serial.begin(115200);
-  spiffSetup();
-  readData();
   lcdSetup();
+  spiffSetup();
 
   WiFiManager WM;
   WM.setConnectTimeout(10);
-  if (WM.autoConnect(APssid, APpass)) {
-    Serial.println("WiFi Terhubung");
+  bool res;
+  res = WM.autoConnect(APssid, APpass);
+  if (res) {
+    debugE("WiFi Terhubung");
+    lcd.setCursor(0, 0);
+    lcd.print("      WiFi      ");
+    lcd.setCursor(0, 1);
+    lcd.print("   Terhubung    ");
   }
   else {
-    Serial.println("Gagal Terhubung ke WiFi !");
+    debugE("Gagal Terhubung ke WiFi !");
+    lcd.setCursor(0, 0);
+    lcd.print("      WiFi      ");
+    lcd.setCursor(0, 1);
+    lcd.print("Gagal Terhubung ");
+    delay(2000);
+    lcd.setCursor(0, 0);
+    lcd.print("AP  :"+String(APssid));
+    lcd.setCursor(0, 1);
+    lcd.print("Pass:"+String(APpass));
   }
 
-  Serial.println("Starting TelegramBot...");
+  debugE("Starting TelegramBot...");
   // Sync time with NTP, to check properly Telegram certificate
   configTime(MYTZ, "time.google.com", "time.windows.com", "pool.ntp.org");
   //Set certficate, session and some other base client properies
@@ -94,8 +108,27 @@ void setup() {
   teleBot.setUpdateTime(2000);
   teleBot.setTelegramToken(token);
   // Check if all things are ok
-  Serial.print("\nTest Telegram connection... ");
-  teleBot.begin() ? Serial.println("OK") : Serial.println("NOK");
+  debugE("\nTest Telegram connection... ");
+  if(teleBot.begin()){
+    debugE("OK");
+    lcd.setCursor(0, 0);
+    lcd.print("  BOT Telegram  ");
+    lcd.setCursor(0, 1);
+    lcd.print("   Terhubung    ");
+    delay(2000);
+  }
+  else {
+    debugE("Not OK");
+    lcd.setCursor(0, 0);
+    lcd.print("  BOT Telegram  ");
+    lcd.setCursor(0, 1);
+    lcd.print("Gagal Terhubung ");
+    delay(2000);
+  }
+  readData();
+  cardCount(0);
+  // debugE("cardTotal "+String(cardTotal));
+  // debugE("tersedia "+String(tersedia));
 }
 
 void loop() { 
@@ -108,8 +141,11 @@ void incomingMsgHandling(TBMessage &msg) {
   if (teleBot.getNewMessage(msg)) {
     String msgText = msg.text;
 
-    if (msgText.equals("/status")) {      
-      cardCount();  
+    if (msgText.equals("/status")) {
+      String reply;
+      reply = "Kapasitas Parkir "+String(kapasitas)+"\n";
+      reply += cardCount(0);
+      teleBot.sendMessage(msg, reply);
     }
 
     else {

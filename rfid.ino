@@ -5,7 +5,7 @@ void cardDetect(){
   if (rfKiri.PICC_IsNewCardPresent()) {
     if (rfKiri.PICC_ReadCardSerial()) {
       String rfUidIn = "";
-      Serial.println("RF IN");
+      debugE("RF IN");
       for (int i = 0; i < rfKiri.uid.size; i++) {
         if (rfKiri.uid.uidByte[i] < 0x10) {
           uint8_t rawUid1 = 0;
@@ -15,8 +15,8 @@ void cardDetect(){
         rfUidIn += rawUid2;
       }
       cardCheckIn(rfUidIn);
-      // Serial.println();
-      // Serial.println("String : "+rfUid+"");
+      // debugE();
+      // debugE("String : "+rfUid+"");
       rfKiri.PICC_HaltA();       // halt PICC
       rfKiri.PCD_StopCrypto1();  // stop encryption on PCD
     }
@@ -24,7 +24,7 @@ void cardDetect(){
   if (rfKanan.PICC_IsNewCardPresent()) {
     if (rfKanan.PICC_ReadCardSerial()) {
       String rfUidOut = "";
-      Serial.println("RF OUT");
+      debugE("RF OUT");
       for (int i = 0; i < rfKanan.uid.size; i++) {
         if (rfKanan.uid.uidByte[i] < 0x10) {
           uint8_t rawUid3 = 0;
@@ -34,15 +34,15 @@ void cardDetect(){
         rfUidOut += rawUid4;
       }
       cardCheckOut(rfUidOut);
-      // Serial.println();
-      // Serial.println("String : "+rfUid+"");
+      // debugE();
+      // debugE("String : "+rfUid+"");
       rfKanan.PICC_HaltA();       // halt PICC
       rfKanan.PCD_StopCrypto1();  // stop encryption on PCD
     }
   }
 }
 void cardCheckIn(String &var) {
-  Serial.println(var);
+  debugE(var);
   bool flag = false;
   bool flag2 = false;
   
@@ -51,12 +51,12 @@ void cardCheckIn(String &var) {
       cards[i].status = 1;
       Serial.print("ID");
       Serial.print(i + 1);
-      Serial.println(" IN");
+      debugE(" IN");
       lcdPrint(String(counter), String(tersedia), String("Akses Masuk"));
       flag = true;
       break;
     } else if (var == cards[i].id && cards[i].status != 0) {
-      Serial.println("Sudah Masuk");
+      debugE("Sudah Masuk");
       lcdPrint(String(counter), String(tersedia), String("Sudah Tap"));
       delay(500);
       lcdPrint(String(counter), String(tersedia), String("Ready..."));
@@ -66,7 +66,7 @@ void cardCheckIn(String &var) {
   }
   
   if (!flag && !flag2) {
-    Serial.println("Akses Ditolak!");
+    debugE("Akses Ditolak!");
     lcdPrint(String(counter), String(tersedia), String("Akses Ditolak!"));
     lcdPrint(String(counter), String(tersedia), String("Ready..."));
     delay(500);
@@ -74,12 +74,12 @@ void cardCheckIn(String &var) {
     String data;
     codeJson(data);
     writeFile("/cardStatus.txt", data.c_str());
-    cardCount();
+    cardCount(1);
   }
 }
 
 void cardCheckOut(String &var) {
-  Serial.println(var);
+  debugE(var);
   bool flag = false;
   bool flag2 = false;
   
@@ -88,12 +88,12 @@ void cardCheckOut(String &var) {
       cards[i].status = 0;
       Serial.print("ID");
       Serial.print(i + 1);
-      Serial.println(" OUT");
+      debugE(" OUT");
       lcdPrint(String(counter), String(tersedia), String("Akses Keluar"));
       flag = true;
       break;
     } else if (var == cards[i].id && cards[i].status != 1) {
-      Serial.println("Sudah Keluar");
+      debugE("Sudah Keluar");
       lcdPrint(String(counter), String(tersedia), String("Sudah Tap"));
       delay(500);
       lcdPrint(String(counter), String(tersedia), String("Ready..."));
@@ -103,7 +103,7 @@ void cardCheckOut(String &var) {
   }
   
   if (!flag && !flag2) {
-    Serial.println("Akses Ditolak!");
+    debugE("Akses Ditolak!");
     lcdPrint(String(counter), String(tersedia), String("Akses Ditolak!"));
     lcdPrint(String(counter), String(tersedia), String("Ready..."));
     delay(500);
@@ -111,23 +111,23 @@ void cardCheckOut(String &var) {
     String data;
     codeJson(data);
     writeFile("/cardStatus.txt", data.c_str());
-    cardCount();
+    cardCount(1);
   }
 }
 
-void cardCount() {
+String cardCount(bool state) {
   counter = 0;
   for (int i = 0; i < cardTotal; i++) {
     if (cards[i].status) {
       counter++;
     }
   }
-  tersedia = 5 - counter;
-  Serial.println("Slot Terpakai : "+ String(counter));
-  Serial.println("Slot Tersedia : "+ String(tersedia));
+  tersedia = kapasitas - counter;
+  debugE("Slot Terpakai : "+ String(counter));
+  debugE("Slot Tersedia : "+ String(tersedia));
   lcdPrint(String(counter), String(tersedia), String("Uploading data..."));
   String reply = "Terisi : " + String(counter) + ", Tersedia : " + String(tersedia);
-  teleBot.sendMessage(msg, reply);
+  if (state == true) teleBot.sendMessage(msg, reply);
   lcdPrint(String(counter), String(tersedia), String("Ready..."));
-  
+  return reply;
 }
