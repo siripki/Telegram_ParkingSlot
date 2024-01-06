@@ -65,12 +65,19 @@ void cardCheckIn(String &var) {
     }
   }
   
-  if (!flag && !flag2) {
+  if (!flag && !flag2 && tersedia <= 0) {
+    debugE("Penuh!");
+    lcdPrint(String(counter), String(tersedia), String("Penuh!"));
+    lcdPrint(String(counter), String(tersedia), String("Ready..."));
+    delay(500);
+  }
+  else if (!flag && !flag2) {
     debugE("Akses Ditolak!");
     lcdPrint(String(counter), String(tersedia), String("Akses Ditolak!"));
     lcdPrint(String(counter), String(tersedia), String("Ready..."));
     delay(500);
-  } else if (flag) {
+  } 
+  else if (flag) {
     String data;
     codeJson(data);
     writeFile("/cardStatus.txt", data.c_str());

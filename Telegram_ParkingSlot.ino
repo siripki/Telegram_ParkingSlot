@@ -19,7 +19,6 @@ Note :
 #include <SPI.h>
 #include <MFRC522.h>
 #include <AsyncTelegram2.h>
-#include <Adafruit_ADS1X15.h>
 #include <WiFiManager.h>
 #include <ESP8266WiFi.h>
 #include <Wire.h>
